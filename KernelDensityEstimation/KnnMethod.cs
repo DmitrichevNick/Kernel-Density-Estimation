@@ -22,11 +22,8 @@ namespace KernelDensityEstimation
             for (var i = 0; i < _elementsNumber; ++i)
                 list.Add(new Tuple<double, double>(u[i], w[i]));
             list = (from element in list orderby element.Item1 select element).ToList();
-            for (var i = 0; i < list.Count; i++)
-            {
-                _u[i] = list[i].Item1;
-                _w[i] = list[i].Item2;
-            }
+            _u = list.Select(item => item.Item1).ToArray();
+            _w = list.Select(item => item.Item2).ToArray();
 
             _k = k;
             _kernel = KernelFactory.Create(kernelType);
