@@ -18,79 +18,63 @@ namespace KernelDensityEstimation
             _u = new double[_elementsNumber];
             _w = new double[_elementsNumber];
             _elementsNumber = u.Length;
-            var dict = new SortedDictionary<double,double>();
-            for(var i =0;i<_elementsNumber;++i)
-                dict.Add(u[i],w[i]);
+            var list = new List<Tuple<double, double>>();
             for (var i = 0; i < _elementsNumber; ++i)
+                list.Add(new Tuple<double, double>(u[i], w[i]));
+            list = (from element in list orderby element.Item1 select element).ToList();
+            for (var i = 0; i < list.Count; i++)
             {
-                _u[i] = dict.ElementAt(i).Key;
-                _w[i] = dict.ElementAt(i).Value;
+                _u[i] = list[i].Item1;
+                _w[i] = list[i].Item2;
             }
 
             _k = k;
             _kernel = KernelFactory.Create(kernelType);
         }
 
-        private double V1(double x)
+        private double FindH(double x)
         {
-            var result = 0.0;
-            for (var j = 0; j < _elementsNumber; ++j)
-            {
-                var s1 = 0.0;
-                var s2 = 0.0;
-                foreach (var element in _u)
-                {
-                    s1 += 1 / _k * _kernel.Calculate((element - x) / _k);
-                    s2 += 1 / _k * _kernel.Calculate((element - _u[j]) / _k);
-                }
+            var uu = (_u.Clone() as double[]).ToList();
+            uu.Add(x);
+            uu.Sort();
+            var index = uu.IndexOf(x);
+            var pos = 0;
 
-                if (s2 != 0.0) result += 1 / _k * _kernel.Calculate((_u[j] - x) / _k) * s1 / s2;
-            }
+            if (index > 0 && index < _elementsNumber)
+                pos = Math.Abs(uu.ElementAt(index - 1) - x) < Math.Abs(uu.ElementAt(index + 1) - x) ? index - 1 : index;
+            else if (index == 00)
+                pos = 0;
+            else if (index == _elementsNumber)
+                pos = _elementsNumber - 1;
 
-            return result / _elementsNumber;
+            if (pos >= _k / 2 && pos < _elementsNumber - _k / 2)
+                return _u[pos + _k / 2] - _u[pos - _k / 2];
+            if (pos < _k / 2)
+                return _u[pos + _k / 2] - _u[0];
+            if (pos >= _elementsNumber - _k / 2)
+                return _u[_elementsNumber - 1] - _u[pos - _k / 2];
+
+            return 0;
         }
 
-        private double V2(double x)
-        {
-            var result = 0.0;
-            for (var j = 0; j < _elementsNumber; ++j)
-            {
-                var s1 = 0.0;
-                var s2 = 0.0;
-                foreach (var element in _u)
-                {
-                    s1 += 1 / _k * _w[j] * _kernel.Calculate((element - x) / _k);
-                    s2 += 1 / _k * _w[j] * _kernel.Calculate((element - _u[j]) / _k);
-                }
-
-                if (s2 != 0.0) result += 1 / _k * _w[j] * _kernel.Calculate((_u[j] - x) / _k) * s1 / s2;
-            }
-
-            return result / _elementsNumber;
-        }
-
+       
         private double S1(double x)
         {
             var result = 0.0;
-            for (var i = 0; i < _elementsNumber; ++i) result += 1 / _k * _kernel.Calculate((_u[i] - x) / _k);
+            var h = FindH(x);
+            for (var i = 0; i < _elementsNumber; ++i) result += 1 / h * _kernel.Calculate((_u[i] - x) / h);
             return result / _elementsNumber;
         }
 
         private double S2(double x)
         {
             var result = 0.0;
-            for (var i = 0; i < _elementsNumber; ++i) result += 1 / _k * _w[i] * _kernel.Calculate((_u[i] - x) / _k);
+            var h = FindH(x);
+            for (var i = 0; i < _elementsNumber; ++i) result += 1 / h * _w[i] * _kernel.Calculate((_u[i] - x) / h);
             return result / _elementsNumber;
         }
 
-        public double Fu(double x)
-        {
-            var v1 = V1(x);
-            if (v1 == 0.0) return 0.0;
-            return V2(x) / v1;
-        }
-
-        public double Fb(double x)
+        public double F(double x)
         {
             var s1 = S1(x);
             if (s1 == 0.0) return 0.0;
