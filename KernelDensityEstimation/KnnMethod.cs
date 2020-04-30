@@ -39,7 +39,7 @@ namespace KernelDensityEstimation
 
             if (index > 0 && index < _elementsNumber)
                 pos = Math.Abs(uu.ElementAt(index - 1) - x) < Math.Abs(uu.ElementAt(index + 1) - x) ? index - 1 : index;
-            else if (index == 00)
+            else if (index == 0)
                 pos = 0;
             else if (index == _elementsNumber)
                 pos = _elementsNumber - 1;

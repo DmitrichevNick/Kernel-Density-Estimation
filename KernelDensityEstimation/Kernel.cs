@@ -61,7 +61,7 @@ namespace KernelDensityEstimation
     {
         public double Calculate(double x)
         {
-            return 0.5;
+            return 0.5 * Indicator.ValueLess1(x);
         }
     }
 
@@ -69,7 +69,7 @@ namespace KernelDensityEstimation
     {
         public double Calculate(double x)
         {
-            return 1 - Math.Abs(x);
+            return (1 - Math.Abs(x)) * Indicator.ValueLess1(x);
         }
     }
 
@@ -77,7 +77,7 @@ namespace KernelDensityEstimation
     {
         public double Calculate(double x)
         {
-            return Math.PI / 4 * Math.Cos(Math.PI * x / 2);
+            return Math.PI / 4 * Math.Cos(Math.PI * x / 2) * Indicator.ValueLess1(x);
         }
     }
 
@@ -85,7 +85,7 @@ namespace KernelDensityEstimation
     {
         public double Calculate(double x)
         {
-            return 0.5 * Math.Exp(-Math.Abs(x));
+            return 0.5 * Math.Exp(-Math.Abs(x)) * Indicator.ValueLess1(x);
         }
     }
 
@@ -93,7 +93,7 @@ namespace KernelDensityEstimation
     {
         public double Calculate(double x)
         {
-            return 1 / Math.Sqrt(2 * Math.PI) * Math.Exp(-Math.Pow(x, 2) / 2);
+            return 1 / Math.Sqrt(2 * Math.PI) * Math.Exp(-Math.Pow(x, 2) / 2) * Indicator.ValueLess1(x);
         }
     }
 }
